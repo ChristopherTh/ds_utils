@@ -8,12 +8,15 @@ from sklearn.dummy import DummyRegressor
 import seaborn as sns
 module_logger = logging.getLogger(__name__)
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 module_logger.info('Found sample column in df, stopping function without any changes to')
 df = sns.load_dataset('tips')
 
 
 def dummy_regressor(df, dependent_variable, splits = 30,  glm_type = None):
+
+	
 
 
 	splitter = ShuffleSplit(n_splits = splits, test_size = 0.2)
@@ -60,5 +63,5 @@ def dummy_regressor(df, dependent_variable, splits = 30,  glm_type = None):
 	g = sns.FacetGrid(final, col = 'metric', row = 'strategy', hue = 'sample', sharex = False, sharey = False, legend_out = True)
 	g.map(sns.distplot, 'value', kde = False)
 	g.add_legend()
-	plt.show()
-dummy_regressor(df, 'tip', 100)
+	g.savefig("test.png")
+dummy_regressor(df, 'tip', 1000)
