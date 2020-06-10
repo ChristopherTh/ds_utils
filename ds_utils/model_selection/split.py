@@ -1,7 +1,8 @@
 import logging
 from sklearn.model_selection import KFold, ShuffleSplit, StratifiedShuffleSplit
 import pandas as pd
-
+import seaborn as sns
+df = sns.load_dataset('tips')
 module_logger = logging.getLogger(__name__)
 
 def split(  df,
@@ -25,17 +26,45 @@ def split(  df,
 
     df.loc[train, 'sample'] = 'train'
     df.loc[test, 'sample'] = 'test'
+    
+    df.sort_values('sample', ascending = False, inplace = True)
+    df.reset_index(inplace = True, drop = True)
+    
 
-    #kf = KFold(n_splits=5, shuffle = False, random_state = random_state)
 
-    #kfolds = kf.split(df.loc[df['sample'] == 'train'])
+    kf = KFold(n_splits=5, shuffle = False, random_state = random_state)
 
-    #for i, (train, test) in enumerate(kfolds):
+    kfolds = kf.split(df.loc[df['sample'] == 'train'])
 
-     #   df[df['sample'] == 'test'].loc[test, 'fold'] = int(i)
+    for i, (train, test) in enumerate(kfolds):
 
-    #df.loc[df['sample'] == 'test', 'fold'] = 'test'
+        df.loc[test, 'fold'] = int(i)
+
+    df.loc[df['sample'] == 'test', 'fold'] = -1
+    
+    
 
     return df
+    
 
 
+
+def generator(df):
+
+	tt = list(df.fold.unique())
+	
+	tt.remove(-1)
+	
+	for i in tt:
+	
+		train_idx = df[df['fold'] != i].index
+		
+		test_idx = df[df['fold'] == i].index
+		
+		yield train_idx, test_idx
+
+	
+	
+	
+	
+	
