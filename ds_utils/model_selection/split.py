@@ -26,20 +26,16 @@ def split(  df,
     df.loc[train, 'sample'] = 'train'
     df.loc[test, 'sample'] = 'test'
 
-    kf = KFold(n_splits=5, shuffle = False, random_state = random_state)
+    #kf = KFold(n_splits=5, shuffle = False, random_state = random_state)
 
-    kfolds = kf.split(df.loc[df['sample'] == 'train'])
+    #kfolds = kf.split(df.loc[df['sample'] == 'train'])
 
-    for i, (train, test) in enumerate(kfolds):
+    #for i, (train, test) in enumerate(kfolds):
 
-        df[df['sample'] == 'test'].loc[test, 'fold'] = int(i)
+     #   df[df['sample'] == 'test'].loc[test, 'fold'] = int(i)
 
-    df.loc[df['sample'] == 'test', 'fold'] = 'test'
+    #df.loc[df['sample'] == 'test', 'fold'] = 'test'
 
     return df
 
-import numpy as np
-df = pd.DataFrame({'a':np.random.rand(100)})
 
-
-aaa = split(df)
