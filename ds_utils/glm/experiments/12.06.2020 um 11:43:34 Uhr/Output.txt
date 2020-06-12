@@ -1,0 +1,18 @@
+                 Generalized Linear Model Regression Results                  
+==============================================================================
+Dep. Variable:                  total   No. Observations:                   40
+Model:                            GLM   Df Residuals:                       37
+Model Family:                   Gamma   Df Model:                            2
+Link Function:                    log   Scale:                        0.018421
+Method:                          IRLS   Log-Likelihood:                -84.299
+Date:                Fri, 12 Jun 2020   Deviance:                      0.67004
+Time:                        11:43:34   Pearson chi2:                    0.682
+No. Iterations:                     7                                         
+Covariance Type:            nonrobust                                         
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+Intercept      2.1515      0.072     29.825      0.000       2.010       2.293
+speeding       0.0143      0.014      0.999      0.318      -0.014       0.042
+alcohol        0.1065      0.017      6.185      0.000       0.073       0.140
+==============================================================================
