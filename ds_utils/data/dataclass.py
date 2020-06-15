@@ -11,22 +11,31 @@ module_logger = logging.getLogger(__name__)
 
 class DataClass(object):
 
-	available_datasets = ['car_crashes', 'boston_housing', 'penguins']
+	available_datasets = { 	'regression' : ['car_crashes', 'boston_housing', 'tips'],
+							'classification' : ['penguins'],
+							'NLP': [],
+							'image': [],
+							'time_series' : ['flights']}
 
-	def __init__(self, test_ratio, fold: int = 0):
+	def __init__(self, test_ratio = None, fold: int = 0):
 	
 		self.test_ratio = test_ratio
 		self.fold = fold
 		
 	def load_data(self, name):
-		print(name)
+
 	
 		module_logger.info(f'Attempting to load data {name}')
 		
 		# seaborn datasets
 		if name == 'car_crashes':
 			df = sns.load_dataset('car_crashes')
-		
+			
+		if name == 'tips':
+			df = sns.load_dataset('tips')
+			
+		if name == 'flights':
+			df = sns.load_dataset('flights')
 		# sklearn datasets
 		if name == 'boston_housing':
 			data_dict = load_boston()
@@ -37,15 +46,20 @@ class DataClass(object):
 			df = pd.concat([df_y, df_X ], axis = 1)
 			
 		# R datasets
+		
+		# local datasets
 
 		# Misc.
 		if name == 'penguins':
 			df = pd.read_csv(r"https://raw.githubusercontent.com/allisonhorst/palmerpenguins/master/data-raw/penguins_raw.csv")
+			df['Species'] = df.Species.str.split().str.get(0)
 			
 		
 		
 		module_logger.info(f'Adding sample and fold columns if specified.')
-		df= self.train_test_split(df)
+		if self.test_ratio:
+			print(self.test_ratio != None)
+			df = self.train_test_split(df)
 	
 		return df
 		
@@ -62,10 +76,10 @@ class DataClass(object):
             
 if __name__ == '__main__':
 
-	test = DataClass(.4)
-	df = test.load_data('boston_housing')
+	test = DataClass()
+	df = test.load_data('penguins')
 	
-	print(test.available_datasets)
+	print(df.Species.str.split().str.get(0))
            
             
            
