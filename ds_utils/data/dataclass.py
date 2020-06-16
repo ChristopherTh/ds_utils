@@ -7,6 +7,8 @@ from ds_utils.model_selection.split import split
 from sklearn.datasets import load_boston
 import logging
 import statsmodels.api as sm
+import pyreadr
+
 module_logger = logging.getLogger(__name__)
 
 
@@ -24,6 +26,8 @@ class DataClass(object):
 	
 		self.test_ratio = test_ratio
 		self.fold = fold
+		
+		self.doc = 'none'
 
 		
 		
@@ -60,6 +64,10 @@ class DataClass(object):
 
 			
 		# R datasets
+		if name == 'lungcap':
+			pp = Path('/usr').rglob("lungcap.rda")
+
+			df = pyreadr.read_r(str(next(pp)))['lungcap']
 		
 		# local datasets
 
@@ -92,13 +100,16 @@ class DataClass(object):
 if __name__ == '__main__':
 
 	test = DataClass()
-	df = test.load_data('penguins')
-	print(test.doc)
+	df = test.load_data('lungcap')
+	print(df)
+	
 	
 
-           
+
+
             
-           
+
+
 	
 		
 	
