@@ -55,6 +55,8 @@ class DataClass(object):
 		if name == 'penguins':
 			df = sm.datasets.get_rdataset("penguins", "palmerpenguins", cache=True).data
 			self.doc = sm.datasets.get_rdataset("penguins", "palmerpenguins", cache=True).__doc__
+			
+		# keras datasets
 
 			
 		# R datasets
