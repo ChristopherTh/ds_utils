@@ -6,6 +6,7 @@ from pathlib import Path
 from ds_utils.model_selection.split import split
 from sklearn.datasets import load_boston
 import logging
+import statsmodels.api as sm
 module_logger = logging.getLogger(__name__)
 
 
@@ -16,11 +17,15 @@ class DataClass(object):
 							'NLP': [],
 							'image': [],
 							'time_series' : ['flights']}
+							
+	
 
 	def __init__(self, test_ratio = None, fold: int = 0):
 	
 		self.test_ratio = test_ratio
 		self.fold = fold
+
+		
 		
 	def load_data(self, name):
 
@@ -36,6 +41,7 @@ class DataClass(object):
 			
 		if name == 'flights':
 			df = sns.load_dataset('flights')
+			
 		# sklearn datasets
 		if name == 'boston_housing':
 			data_dict = load_boston()
@@ -45,14 +51,21 @@ class DataClass(object):
 			
 			df = pd.concat([df_y, df_X ], axis = 1)
 			
+		# statsmodels
+		if name == 'penguins':
+			df = sm.datasets.get_rdataset("penguins", "palmerpenguins", cache=True).data
+			self.doc = sm.datasets.get_rdataset("penguins", "palmerpenguins", cache=True).__doc__
+
+			
 		# R datasets
 		
 		# local datasets
 
 		# Misc.
-		if name == 'penguins':
-			df = pd.read_csv(r"https://raw.githubusercontent.com/allisonhorst/palmerpenguins/master/data-raw/penguins_raw.csv")
-			df['Species'] = df.Species.str.split().str.get(0)
+		
+
+		def doc(self):
+			return self.doc
 			
 		
 		
@@ -78,8 +91,9 @@ if __name__ == '__main__':
 
 	test = DataClass()
 	df = test.load_data('penguins')
+	print(test.doc)
 	
-	print(df.Species.str.split().str.get(0))
+
            
             
            
