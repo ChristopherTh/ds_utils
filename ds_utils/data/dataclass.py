@@ -68,6 +68,11 @@ class DataClass(object):
 			pp = Path('/usr').rglob("lungcap.rda")
 
 			df = pyreadr.read_r(str(next(pp)))['lungcap']
+			
+		
+		# pandas datareader
+		
+		# quent econ ? 
 		
 		# local datasets
 
