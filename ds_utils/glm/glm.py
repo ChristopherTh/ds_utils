@@ -14,7 +14,7 @@ from ds_utils.plotting.residuals import residuals
 from statsmodels.genmod.families import links, family, varfuncs
 import numpy as np
 import scipy.stats
-
+from statsmodels.graphics.regressionplots import plot_partregress_grid
 df = sns.load_dataset("car_crashes")
 a, b = dmatrices('total ~ speeding + alcohol', df , return_type = 'dataframe')
 df = pd.concat([a, b] , axis = 1)
@@ -54,40 +54,44 @@ def glm_func(dependent_variable, data, glm_type):
 
 	with open(new_folder.joinpath("Output.txt"), "w") as output:
 		output.write(str(model.summary()))
+		
+	df_test = df[[dependent_variable, 'sample']].copy()
+	df_test['nu'] = fam.link(model.predict(data[features])) # explicit with link -> no case destinction for different predict implmentations
+	df_test['pred'] = model.predict(data[features])
+	df_test['raw_residuals'] = df_test[dependent_variable] - df_test['pred']
+	df_test['pearson_residuals'] = (df[dependent_variable] - df_test['pred']) / np.sqrt(var_func(df_test['pred']))
+	aaa = stats.gamma.cdf(df[dependent_variable], df_test['pred'] / model.scale, scale = model.scale)
+	df_test['quantile_residuals'] = stats.norm.ppf(aaa, loc=0, scale=1)
+	df_test['quantile_residuals'].clip(-10, 10, inplace = True)
+	df_test['deviance_residuals'] = fam._resid_dev(df[dependent_variable], df_test['pred'])
+	df_test['anscombe'] = fam.resid_anscombe(df[dependent_variable], df_test['pred'])
+	df_test['working_responses'] = model.predict(data.loc[:, features], linear = True) + fam.link.deriv(df_test['raw_residuals'])
+	df_test['working_residual'] = df_test['working_responses'] - df_test['nu']
+	
+	
+	
 
 
 
-	y_pred_test = model.predict(df.loc[test, features])
-	y_pred_train = model.predict(df.loc[train, features])
-
-	y_train = df.loc[train, dependent_variable]
-	y_test = df.loc[test, dependent_variable]
-	
-	
-	# pearson residuals
-	pearson_resid_train = (y_train - y_pred_train) / np.sqrt(var_func(y_pred_train))
-	pearson_resid_test = (y_test - y_pred_test) / np.sqrt(var_func(y_pred_test))
-	
-	# quantile residuals
-	bbb = stats.gamma.cdf(y_test, y_pred_test / model.scale, scale = model.scale)
-	quantile_resid_test = stats.norm.ppf(bbb, loc=0, scale=1)
 
 	
-	
-	aaa = stats.gamma.cdf(y_train, y_pred_train / model.scale, scale = model.scale)
-	quantile_resid_train = stats.norm.ppf(aaa, loc=0, scale=1)
-	quantile_resid_train[quantile_resid_train == np.inf] = 0
-	print(quantile_resid_train, quantile_resid_test)
 
-	resid_df_train = pd.DataFrame({'deviance' : fam._resid_dev(y_train, y_pred_train),'resid_pearson': pearson_resid_train, 'resid_anscombe' : fam.resid_anscombe(y_train, y_pred_train), 'sample': 'train', 'quantile_resid' : quantile_resid_train})
+
+
 	
-	resid_df_test = pd.DataFrame({'deviance' : fam._resid_dev(y_test, y_pred_test),'resid_pearson': pearson_resid_test, 'resid_anscombe' : fam.resid_anscombe(y_test, y_pred_test), 'sample': 'test', 'quantile_resid' : quantile_resid_test})
-	
-	resid_df = pd.concat([resid_df_train, resid_df_test])
-	
-	resid_df = pd.melt(resid_df, var_name = 'residual_type',value_name = 'residuals' ,id_vars = 'sample' ,value_vars = ['quantile_resid','deviance', 'resid_pearson', 'resid_anscombe'])
+	resid_df = pd.melt(df_test, var_name = 'residual_type',value_name = 'residuals' ,id_vars = [dependent_variable, 'sample', 'pred'] ,value_vars = ['quantile_residuals','deviance_residuals', 'pearson_residuals', 'anscombe'])
 
 	residuals(resid_df)
+	
+	gg = sns.FacetGrid(resid_df, col = 'residual_type', hue = 'sample', sharey = True, sharex = False)
+	gg.map(plt.scatter,  'residuals','pred', alpha = .7)
+	gg.add_legend()
+	plt.show()
+
+	fig = plt.figure(figsize=(8, 6))
+	
+	plot_partregress_grid(model, fig=fig)
+	plt.savefig("test2.png")
 	
 
 	
