@@ -18,5 +18,13 @@ def signed_rank_test():
 
 	return p_val
 	
+def anova():
+	
+	return
+	
+def manova():
+
+	return 
+	
 
 

@@ -5,7 +5,7 @@ import pandas as pd
 module_logger = logging.getLogger(__name__)
 
 
-module_logger.info('Found sample column in df, stopping function without any changes 
+module_logger.info('Found sample column in df, stopping function without any changes')
 
 
 def get_feature_names(dependent_variable, df):
