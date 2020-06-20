@@ -6,7 +6,10 @@ from pathlib import Path
 import statsmodels.api as sm
 import matplotlib.dates as mdates
 
-
+# next steps -> more than one ts
+# seasonal decomposition
+# currently supports yyyy-mm-dd format what about only yyyy or yyyy-mm
+# add first difference plot
 class ts_eda:
     def __init__(self, ts, freq="d", lags = 9):
 
