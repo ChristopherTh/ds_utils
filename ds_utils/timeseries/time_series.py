@@ -8,12 +8,19 @@ import statsmodels.api as sm
 import matplotlib.dates as mdates
 from pandas.plotting import lag_plot
 
-
+Path.cwd()
 class ts_eda:
 
 	def __init__(self, ts, freq = 'd'):
+
+		
 	
 		self.ts = ts
+		self.cwd = Path.cwd()
+		self.plot_folder = self.cwd.joinpath("ts_plots")
+		if not self.plot_folder.exists():
+			self.plot_folder.mkdir()
+		
 		
 		self.ts_df = self.make_df()
 		
@@ -46,14 +53,14 @@ class ts_eda:
 		axs = sns.lineplot(x = self.ts.index, y = self.ts)
 		fig.autofmt_xdate()
 
-		plt.savefig("timeplot.png")
+		plt.savefig(self.plot_folder / "timeplot.png")
 		plt.clf()
 
 	def season_plot(self, ):
 		fig, axs = plt.subplots()
 
 		sns.lineplot(x = 'month', y = 0, hue = 'year',data = self.ts_df,ci = False, ax = axs)
-		plt.savefig("season1.png")
+		plt.savefig(self.plot_folder / "season1.png")
 		plt.clf()
 		def plot_mena( x, **kwargs):
 		
@@ -64,19 +71,19 @@ class ts_eda:
 		g = sns.FacetGrid(self.ts_df, col = 'month', sharex = True, sharey = False)
 		g.map(sns.lineplot, 'year', 0, ci = False)
 		g.map(plot_mena, 0)
-		plt.savefig("season2.png")
+		plt.savefig(self.plot_folder / "season2.png")
 		plt.clf()
 
 	def acf(self,):
 		fig, axes = plt.subplots()
 		sm.graphics.tsa.plot_acf(self.ts_df[0], lags=40, ax = axes)
-		plt.savefig("auto_correlation_function.png")
+		plt.savefig(self.plot_folder / "auto_correlation_function.png")
 		plt.clf()
 	
 	def pacf(self, ):
 		fig, axes = plt.subplots()
 		sm.graphics.tsa.plot_pacf(self.ts_df[0], lags=40,ax = axes)
-		plt.savefig("partial_auto_correlation_function.png")
+		plt.savefig(self.plot_folder / "partial_auto_correlation_function.png")
 		plt.clf()
 
 	def polar_plot(self, ):
@@ -97,7 +104,7 @@ class ts_eda:
 			#ax.fill_between(tnorm,y ,0, alpha=0.4)
 			axes.plot(tnorm,y , linewidth=0.8,  label = year)
 			axes.legend('right')
-		plt.savefig("polar.png")
+		plt.savefig(self.plot_folder / "polar.png")
 		plt.clf()
 
 	def lag_plot(self,):
@@ -107,12 +114,12 @@ class ts_eda:
 			handles, labels = axis.get_legend_handles_labels()
 			fig.legend(handles,labels,loc = 'right')
 			axis.get_legend().remove()
-		plt.savefig("lag_plot.png")
+		plt.savefig(self.plot_folder / "lag_plot.png")
 		plt.clf()
 	
 		
 test = ts_eda(ts)
-test.lag_plot()
+test.timeplot()
 test.ts_df
 
 if __name__ == 'main':
