@@ -11,7 +11,8 @@ import pyreadr
 
 module_logger = logging.getLogger(__name__)
 
-
+# add methods to generate fake data, time series, regression and classification problems
+# + such that it can easiyl genrate a lot of different problems
 class DataClass(object):
 
 	available_datasets = { 	'regression' : ['car_crashes', 'boston_housing', 'tips'],
@@ -101,6 +102,8 @@ class DataClass(object):
             fold = None,
             random_state = None,
             stratified = False)
+            
+           
             
 if __name__ == '__main__':
 
