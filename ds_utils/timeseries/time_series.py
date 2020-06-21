@@ -5,22 +5,25 @@ import numpy as np
 from pathlib import Path
 import statsmodels.api as sm
 import matplotlib.dates as mdates
+import pandas_datareader.data as web
+
+gs = web.DataReader("GS", data_source="yahoo", start="2006-01-01", end="2009-01-01")
 
 # next steps -> more than one ts
 # seasonal decomposition
 # currently supports yyyy-mm-dd format what about only yyyy or yyyy-mm
 # add first difference plot
 class ts_eda:
-    def __init__(self, ts, freq="d", lags = 9):
+    def __init__(self, ts, freq="d", lags=9):
 
         self.ts = ts
         self.cwd = Path.cwd()
         self.plot_folder = self.cwd.joinpath("ts_plots")
         if not self.plot_folder.exists():
             self.plot_folder.mkdir()
-
         self.ts_df = self.make_df()
-		self.lags = lags
+
+        self.lags = lags
         self.create_lags(self.ts_df, 9)
 
         # make quick plot to infer additive or multiplicative seasonality
@@ -51,7 +54,8 @@ class ts_eda:
             7: "Sunday",
         }
 
-        ts_df = pd.DataFrame(self.ts, columns = 'y')
+        ts_df = pd.DataFrame(self.ts)
+        ts_df.columns = ["y"]
         ts_df["month"] = self.ts.index.month
         ts_df.month = ts_df.month.map(month_map)
         ts_df["year"] = self.ts.index.year
@@ -62,12 +66,12 @@ class ts_eda:
 
     def create_lags(self, df: pd.DataFrame, fill_value=np.nan):
         for i in np.arange(1, self.lags + 1):
-            df[f"lag_{i }"] = np.append(df['y'][(i):].values, [fill_value] * (i))
+            df[f"lag_{i }"] = np.append(df["y"].iloc[i:].values, [fill_value] * (i))
 
     def timeplot(self):
         fig, axs = plt.subplots()
 
-        sns.lineplot(x=self.ts.index, y=self.ts, ax = axs)
+        sns.lineplot(x=self.ts.index, y=self.ts, ax=axs)
         fig.autofmt_xdate()
 
         plt.savefig(self.plot_folder / "timeplot.png")
@@ -76,7 +80,7 @@ class ts_eda:
     def season_plot(self,):
         fig, axs = plt.subplots()
 
-        sns.lineplot(x="month", y='y', hue="year", data=self.ts_df, ci=False, ax=axs)
+        sns.lineplot(x="month", y="y", hue="year", data=self.ts_df, ci=False, ax=axs)
         plt.savefig(self.plot_folder / "season1.png")
         plt.clf()
 
@@ -85,25 +89,27 @@ class ts_eda:
             plt.hlines(x.mean(), self.ts_df.year.min(), self.ts_df.year.max())
 
         g = sns.FacetGrid(self.ts_df, col="month", sharex=True, sharey=False)
-        g.map(sns.lineplot, "year", 'y', ci=False)
-        g.map(plot_mena, 'y')
+        g.map(sns.lineplot, "year", "y", ci=False)
+        g.map(plot_mena, "y")
         plt.savefig(self.plot_folder / "season2.png")
         plt.clf()
 
     def acf(self,):
         fig, axes = plt.subplots()
-        sm.graphics.tsa.plot_acf(self.ts_df['y'], lags=40, ax=axes)
+        sm.graphics.tsa.plot_acf(self.ts_df["y"], lags=40, ax=axes)
         plt.savefig(self.plot_folder / "auto_correlation_function.png")
         plt.clf()
 
     def pacf(self,):
         fig, axes = plt.subplots()
-        sm.graphics.tsa.plot_pacf(self.ts_df['y'], lags=40, ax=axes)
+        print(ts_df)
+
+        sm.graphics.tsa.plot_pacf(self.ts_df["y"], lags=40, ax=axes)
         plt.savefig(self.plot_folder / "partial_auto_correlation_function.png")
         plt.clf()
 
     def polar_plot(self,):
-        fig, axes = plt.subplots()
+        fig, axes = plt.subplots(figsize=(20, 20))
 
         axes = plt.subplot(projection="polar")
         axes.set_theta_direction(-1)
@@ -127,34 +133,57 @@ class ts_eda:
             fmt=None,
         )
 
-        for year in self.ts_df.index.years.to_list():
+        for year in self.ts_df.index.year.unique().to_list():
             times = pd.date_range(
                 self.ts_df[self.ts_df.index.year == year].index.min().to_pydatetime(),
                 self.ts_df[self.ts_df.index.year == year].index.max().to_pydatetime(),
             )
-            rand_nums = self.ts_df[self.ts_df.index.year == year]['y'].values
-            df = pd.DataFrame(index=times, data=rand_nums, columns=["A"])
-            t = mdates.date2num(df.index.to_pydatetime())
-            y = df["A"]
+            # rand_nums = self.ts_df[self.ts_df.index.year == year]["y"].values
+            # df = pd.DataFrame(index=times, data=rand_nums, columns=["A"])
+            # t = mdates.date2num(df.index.to_pydatetime())
+            t = mdates.date2num(times.to_pydatetime())
+            t = mdates.date2num(
+                (self.ts_df.loc[self.ts_df.index.year == year].index).to_pydatetime()
+            )
+
+            # y = df["A"]
+            y = self.ts_df[self.ts_df.index.year == year]["y"]
             tnorm = (t - t.min()) / (t.max() - t.min()) * 2.0 * np.pi
             axes.plot(tnorm, y, linewidth=0.8, label=year)
-            axes.legend("right")
+            axes.legend()
         plt.savefig(self.plot_folder / "polar.png")
         plt.clf()
 
     def lag_plot(self,):
 
-		if self.lags % 2 == 0:
-        	fig, axs = plt.subplots(self.lags / 2, 2, figsize=(10, 10), tight_layout=True)
-		else:
-			fig, axs = plt.subplots((self.lags + 1) / 2, 2, figsize=(10, 10), tight_layout=True)
+        if self.lags % 2 == 0:
+            fig, axs = plt.subplots(
+                int(self.lags / 2), 2, figsize=(10, 10), tight_layout=True
+            )
+        else:
+            fig, axs = plt.subplots(
+                int((self.lags + 1) / 2), 2, figsize=(10, 10), tight_layout=True
+            )
 
         for i, axis in enumerate(axs.flat):
             sns.scatterplot(
-                x=f"lag_{i + 1 }", y='y', data=self.ts_df, ax=axis, hue="month"
+                x=f"lag_{i + 1 }", y="y", data=self.ts_df, ax=axis, hue="month"
             )
             handles, labels = axis.get_legend_handles_labels()
-            fig.legend(handles, labels, loc="right")
+            fig.legend(handles, labels)
             axis.get_legend().remove()
         plt.savefig(self.plot_folder / "lag_plot.png")
         plt.clf()
+
+    def plot_all(self,):
+
+        self.season_plot()
+        self.lag_plot()
+        self.polar_plot()
+        self.pacf()
+        self.acf()
+        self.timeplot()
+
+
+aa = ts_eda(gs.Volume)
+aa.plot_all()
