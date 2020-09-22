@@ -6,7 +6,7 @@ from pathlib import Path
 import statsmodels.api as sm
 import matplotlib.dates as mdates
 import pandas_datareader.data as web
-
+import streamlit as st
 gs = web.DataReader("GS", data_source="yahoo", start="2006-01-01", end="2009-01-01")
 
 # next steps -> more than one ts
@@ -14,7 +14,7 @@ gs = web.DataReader("GS", data_source="yahoo", start="2006-01-01", end="2009-01-
 # currently supports yyyy-mm-dd format what about only yyyy or yyyy-mm
 # add first difference plot
 class ts_eda:
-    def __init__(self, ts, freq="d", lags=9):
+    def __init__(self, ts, freq="d", lags=4):
 
         self.ts = ts
         self.cwd = Path.cwd()
@@ -24,7 +24,7 @@ class ts_eda:
         self.ts_df = self.make_df()
 
         self.lags = lags
-        self.create_lags(self.ts_df, 9)
+        self.create_lags(self.ts_df, lags)
 
         # make quick plot to infer additive or multiplicative seasonality
         sns.lineplot(x=ts.index, y=ts)
@@ -66,7 +66,7 @@ class ts_eda:
 
     def create_lags(self, df: pd.DataFrame, fill_value=np.nan):
         for i in np.arange(1, self.lags + 1):
-            df[f"lag_{i }"] = np.append(df["y"].iloc[i:].values, [fill_value] * (i))
+            df[f"lag_{i}"] = np.append(df["y"].iloc[i:].values, [fill_value] * (i))
 
     def timeplot(self):
         fig, axs = plt.subplots()
@@ -82,6 +82,7 @@ class ts_eda:
 
         sns.lineplot(x="month", y="y", hue="year", data=self.ts_df, ci=False, ax=axs)
         plt.savefig(self.plot_folder / "season1.png")
+        st.pyplot(fig)
         plt.clf()
 
         def plot_mena(x, **kwargs):
@@ -102,7 +103,6 @@ class ts_eda:
 
     def pacf(self,):
         fig, axes = plt.subplots()
-        print(ts_df)
 
         sm.graphics.tsa.plot_pacf(self.ts_df["y"], lags=40, ax=axes)
         plt.savefig(self.plot_folder / "partial_auto_correlation_function.png")
@@ -138,15 +138,11 @@ class ts_eda:
                 self.ts_df[self.ts_df.index.year == year].index.min().to_pydatetime(),
                 self.ts_df[self.ts_df.index.year == year].index.max().to_pydatetime(),
             )
-            # rand_nums = self.ts_df[self.ts_df.index.year == year]["y"].values
-            # df = pd.DataFrame(index=times, data=rand_nums, columns=["A"])
-            # t = mdates.date2num(df.index.to_pydatetime())
-            t = mdates.date2num(times.to_pydatetime())
+            
             t = mdates.date2num(
                 (self.ts_df.loc[self.ts_df.index.year == year].index).to_pydatetime()
             )
 
-            # y = df["A"]
             y = self.ts_df[self.ts_df.index.year == year]["y"]
             tnorm = (t - t.min()) / (t.max() - t.min()) * 2.0 * np.pi
             axes.plot(tnorm, y, linewidth=0.8, label=year)
@@ -164,10 +160,10 @@ class ts_eda:
             fig, axs = plt.subplots(
                 int((self.lags + 1) / 2), 2, figsize=(10, 10), tight_layout=True
             )
-
+        print(self.ts_df.columns)
         for i, axis in enumerate(axs.flat):
             sns.scatterplot(
-                x=f"lag_{i + 1 }", y="y", data=self.ts_df, ax=axis, hue="month"
+                x=f"lag_{i + 1}", y="y", data=self.ts_df, ax=axis, hue="month"
             )
             handles, labels = axis.get_legend_handles_labels()
             fig.legend(handles, labels)
@@ -185,5 +181,5 @@ class ts_eda:
         self.timeplot()
 
 
-aa = ts_eda(gs.Volume)
-aa.plot_all()
+#aa = ts_eda(gs.Volume)
+#aa.plot_all()

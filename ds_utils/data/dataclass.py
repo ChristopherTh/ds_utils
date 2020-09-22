@@ -23,16 +23,19 @@ class DataClass(object):
 							
 	
 
-	def __init__(self, test_ratio = None, fold: int = 0):
+	def __init__(self, ):
+	
+		
+		
+		self.doc = 'empty'
+
+		
+		
+	def load_data(self, name, test_ratio = None, fold: int = 0):
 	
 		self.test_ratio = test_ratio
 		self.fold = fold
 		
-		self.doc = 'none'
-
-		
-		
-	def load_data(self, name):
 
 	
 		module_logger.info(f'Attempting to load data {name}')
@@ -103,14 +106,12 @@ class DataClass(object):
             random_state = None,
             stratified = False)
             
-           
-            
-if __name__ == '__main__':
 
-	test = DataClass()
-	df = test.load_data('lungcap')
-	print(df)
-	
+aa = DataClass().load_data('boston_housing', 0.8)
+aa.to_csv("boston_housing.csv")
+            
+           
+
 	
 
 

@@ -8,17 +8,21 @@ from ds_utils.helper_functions.helper_functions import get_feature_names
 from ds_utils.model_selection.split import split, generator
 import seaborn as sns
 from sklearn.model_selection import cross_validate
+import numpy as np
+def root_mean_squared_error(y_true, y_pred):
 
-def eval_regression_estimator(estimator, df,dependent_variable, type = 'regression'):
+	return np.sqrt(mean_squared_error(y_true, y_pred))
+
+def eval_regression_estimator(estimator, df,dependent_variable, features):
 
 	# check if estimator has predict method
 
 	metrics = dict()
 
-	metric_names = ['mse', 'mae']
-	metric_list = [mean_squared_error, mean_absolute_error]
+	metric_names = ['mse', 'mae', 'rmse']
+	metric_list = [mean_squared_error, mean_absolute_error, root_mean_squared_error]
 
-	features = get_feature_names(dependent_variable, df)
+
 
 	for name, metric in zip(metric_names, metric_list):
 
@@ -38,9 +42,10 @@ def eval_regression_estimator(estimator, df,dependent_variable, type = 'regressi
 	dd = metrics_df.reset_index()['index'].apply(pd.Series)
 	dd.columns = ['metric', 'sample']
 	final = pd.concat([metrics_df, dd] , axis = 1)
-	final.drop(columns = 'index', inplace = True)
+	final.drop(columns = ['index'], inplace = True)
 	final = pd.melt(final, id_vars = ['metric', 'sample'])
-	return final
+	final.drop(columns = 'variable', inplace = True)
+	return final.pivot(columns = 'sample', index = 'metric', values = 'value')
 	
    # create df, styling
    
@@ -57,9 +62,8 @@ if __name__ == '__main__':
 	
 	model.fit(df[['size', 'total_bill']], df.tip)
 	
-	print(cross_validate(model, df[['size', 'total_bill']], df.tip, scoring = 'max_error', cv = generator(df)).keys())
 	
-	eval_regression_estimator(model, df[['size', 'total_bill', 'tip', 'sample']] , 'tip')
+	print(eval_regression_estimator(model, df[['size', 'total_bill', 'tip', 'sample']] , 'tip', ['size', 'total_bill']))
 	
 	
     
